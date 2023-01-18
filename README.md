@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-pip install git+https://github.com/yinheli/kaniko-build.git
+pip install --upgrade git+https://github.com/yinheli/kaniko-build.git
 ```
 
 ## 依赖
