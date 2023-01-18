@@ -48,14 +48,20 @@ class Worker:
                             input=data.encode(), stdout=subprocess.PIPE)
         name = ret.stdout.decode("utf-8").strip().split(" ")[0]
 
+        clearup = True
+
         try:
             self._kubectl("wait", "--for=condition=Ready",
                           "--timeout=120s", name)
             click.echo("run build job following log")
             self._kubectl("logs", "--follow", name)
+        except KeyboardInterrupt:
+            cleanup = click.confirm(
+                "Your image is building, would you want to stop and cleanup? ", default=False)
         finally:
-            click.echo("delete build job")
-            self._kubectl("delete", name, "--grace-period=1")
+            if cleanup:
+                click.echo("delete build job")
+                self._kubectl("delete", name, "--grace-period=1")
 
     def cleanup(self):
         self._kubectl("delete", "pod", "-l", "app=kaniko-builder",

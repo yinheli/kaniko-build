@@ -1,6 +1,6 @@
 # kaniko-build
 
-通过 kaniko，利用远程 k8s 集群构建镜像
+这是一个 kaniko cli 工具，可以帮你快速把一个 `Dockerfile` 在 k8s 集群中打包生成镜像并推送到镜像库。 具体参考 [pod.yaml](./kanikobuild/resource/pod.yaml)
 
 ## 安装
 
@@ -41,3 +41,7 @@ data:
   .dockerconfigjson: >-
     xxx
 ```
+
+## 相关资料
+
+- kaniko https://github.com/GoogleContainerTools/kaniko
