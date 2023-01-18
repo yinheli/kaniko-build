@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-# todo
+pip install git+https://github.com/yinheli/kaniko-build.git
 ```
 
 ## 依赖
