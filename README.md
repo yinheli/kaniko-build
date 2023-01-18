@@ -2,8 +2,15 @@
 
 通过 kaniko，利用远程 k8s 集群构建镜像
 
+## 安装
+
+```bash
+# todo
+```
+
 ## 依赖
 
+- python3
 - kubectl
 
 ## 准备工作
