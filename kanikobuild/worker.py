@@ -48,7 +48,7 @@ class Worker:
                             input=data.encode(), stdout=subprocess.PIPE)
         name = ret.stdout.decode("utf-8").strip().split(" ")[0]
 
-        clearup = True
+        cleanup = True
 
         try:
             self._kubectl("wait", "--for=condition=Ready",
