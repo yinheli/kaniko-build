@@ -1,0 +1,95 @@
+# refer: https://github.com/GoogleContainerTools/kaniko#using-kaniko
+apiVersion: v1
+kind: Pod
+metadata:
+  generateName: kaniko-builder-
+  labels:
+    app: kaniko-builder
+spec:
+  # https://github.com/GoogleContainerTools/kaniko#caching
+  initContainers:
+    - name: warmer
+      image: gcr.io/kaniko-project/warmer:latest
+      imagePullPolicy: IfNotPresent
+      args:
+        - --registry-mirror=xyh9yo72.mirror.aliyuncs.com
+        - --registry-mirror=mirror.baidubce.com
+        - --registry-mirror=hub-mirror.c.163.com
+        - --registry-mirror=registry-1.docker.io
+        - --cache-dir=/cache
+        - --image=debian:11
+      volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
+        - name: workspace
+          mountPath: /workspace
+          subPath: workspace
+        - name: workspace
+          mountPath: /cache
+          subPath: cache
+  containers:
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:v1.9.1
+      imagePullPolicy: IfNotPresent
+      args:
+        - --use-new-run
+        - --registry-mirror=xyh9yo72.mirror.aliyuncs.com
+        - --registry-mirror=mirror.baidubce.com
+        - --registry-mirror=hub-mirror.c.163.com
+        - --registry-mirror=registry-1.docker.io
+        - --context={{ context }}
+        {% if subpath -%}
+        - --context-sub-path={{ subpath }}
+        {% endif -%}
+        {% if dockerfile -%}
+        - --dockerfile={{ dockerfile }}
+        {% endif -%}
+        {% if buildarg -%}
+        - --build-arg={{ buildarg }}
+        {% endif -%}
+        {% if git -%}
+        - --git={{ git }}
+        {% endif -%}
+        - --cache=true
+        - --cache-dir=/cache
+        - --cache-run-layers
+        - --cache-copy-layers
+        - --skip-unused-stages
+        - --single-snapshot
+        - --snapshot-mode=redo
+        # - --label
+        # - |
+        #   org.opencontainers.image.authors=me@yinheli.com
+        #   org.opencontainers.image.title=xxx
+        #   org.opencontainers.image.description=xxx
+        # - --destination=registry.default.svc:5000/app:v0.1.0
+        # - --insecure
+        - --destination={{ destination }}
+      volumeMounts:
+        - name: kaniko-secret
+          mountPath: /kaniko/.docker
+        - name: workspace
+          mountPath: /workspace
+          subPath: workspace
+        - name: workspace
+          mountPath: /cache
+          subPath: cache
+      resources:
+        limits:
+          cpu: 8000m
+          memory: 8Gi
+        requests:
+          cpu: 100m
+          memory: 200Mi
+  volumes:
+    - name: kaniko-secret
+      secret:
+        secretName: dockercred
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+    - name: workspace
+      persistentVolumeClaim:
+        claimName: image-build-pvc
+
+  restartPolicy: Never
