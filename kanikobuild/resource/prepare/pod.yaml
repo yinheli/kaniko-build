@@ -11,11 +11,11 @@ spec:
       imagePullPolicy: IfNotPresent
       resources:
         limits:
-          cpu: 100m
+          cpu: 1000m
           memory: 200Mi
         requests:
           cpu: 100m
-          memory: 200Mi
+          memory: 100Mi
       env:
         - name: TZ
           value: Asia/Shanghai
@@ -30,6 +30,6 @@ spec:
   volumes:
     - name: workspace
       persistentVolumeClaim:
-        claimName: image-build-pvc
+        claimName: "{{ pvc }}"
 
   restartPolicy: Always

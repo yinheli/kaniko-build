@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: image-build-pvc
+  generateName: kaniko-builder-source-
+  labels:
+    app: kaniko-builder
 spec:
-  # storageClassName: local-path
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi
+      storage: 5Gi

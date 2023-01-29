@@ -17,14 +17,22 @@ def cli():
     pass
 
 
+default_mirrors = [
+    "mirror.baidubce.com",
+    "hub-mirror.c.163.com",
+    "registry-1.docker.io",
+]
+
+
 @cli.command(no_args_is_help=True)
 @click.option("-n", "--namespace", default="default", help="namespace")
 @click.option("-s", "--source", default="", help="source dir or git repo url")
 @click.option("-d", "--destination", help="image destination")
 @click.option("--buildarg", default="", help="build-args")
 @click.option("--git", default="", help="git branch")
-@click.option("--subpath", default="")
+@click.option("--subpath", default="", help="Dockerfile path")
 @click.option("--dockerfile", default="Dockerfile")
+@click.option("-m", "--mirror", default=default_mirrors, multiple=True, help=f"registry mirror, support mutiple, default: {', '.join(default_mirrors)}")
 def build(**kwargs):
     """
     build image

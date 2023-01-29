@@ -10,7 +10,8 @@ from jinja2 import Environment, FileSystemLoader
 class Worker:
     def __init__(self, **kwargs):
         self.namespace = kwargs.get("namespace", "default")
-        self.workspace_pvc = "image-build-pvc"
+        self.workspace_pvc = None
+        self.cache_pvc = 'kaniko-builder-cache'
         self.resource_base_dir = os.path.join(
             os.path.dirname(__file__), "resource",
         )
@@ -21,6 +22,10 @@ class Worker:
         self.destination = kwargs.get("destination", "")
         self.buildarg = kwargs.get("buildarg", "")
         self.source_base_dir = os.path.basename(self.source)
+        self.mirrors = kwargs.get("mirror", ["registry-1.docker.io"])
+
+        self.env = Environment(loader=FileSystemLoader(
+            searchpath=self.resource_base_dir))
 
     def build(self):
         self.prepare()
@@ -28,24 +33,20 @@ class Worker:
         if os.path.exists(self.source):
             context = f"dir:///workspace/source/{self.source_base_dir}"
 
-        env = Environment(loader=FileSystemLoader(
-            searchpath=self.resource_base_dir))
-        tp = env.get_template('pod.yaml')
-
         args = {
+            'mirrors': self.mirrors,
             'context': context,
             'git': self.git,
             'subpath': self.subpath,
             'dockerfile': self.dockerfile,
             'buildarg': self.buildarg,
-            'destination': self.destination
+            'destination': self.destination,
+            'pvc': self.workspace_pvc,
         }
-
-        data = tp.render(args)
 
         click.echo("create build job")
         ret = self._kubectl("create", "-f", "-",
-                            input=data.encode(), stdout=subprocess.PIPE)
+                            input=self._render('pod.yaml', args), stdout=subprocess.PIPE)
         name = ret.stdout.decode("utf-8").strip().split(" ")[0]
 
         cleanup = True
@@ -62,9 +63,11 @@ class Worker:
             if cleanup:
                 click.echo("delete build job")
                 self._kubectl("delete", name, "--grace-period=1")
+                if self.workspace_pvc:
+                    self._kubectl("delete", "pvc", self.workspace_pvc)
 
     def cleanup(self):
-        self._kubectl("delete", "pod", "-l", "app=kaniko-builder",
+        self._kubectl("delete", "pod,pvc", "-l", "app=kaniko-builder",
                       "--grace-period=1", "--wait=true", "--ignore-not-found")
 
     def prepare(self):
@@ -72,30 +75,41 @@ class Worker:
             click.echo("invalid source & destination")
             exit(1)
 
-        self._prepare_pvc()
+        self._prepare_cache_pvc()
         self._prepare_workspace()
 
-    def _prepare_pvc(self):
-        if self._pvc_exists():
+    def _prepare_cache_pvc(self):
+        if self._pvc_exists(self.cache_pvc):
             return
-        file = os.path.join(self.resource_base_dir, "prepare", "pvc.yaml")
-        click.echo(f"create workspace pvc: {self.workspace_pvc}, file: {file}")
+        file = os.path.join(self.resource_base_dir,
+                            "prepare", "pvc-cache.yaml")
+        click.echo(f"create cache pvc: {self.cache_pvc}")
         self._kubectl("apply", "-f", file)
 
-    def _pvc_exists(self) -> bool:
+    def _pvc_exists(self, name) -> bool:
         ret = self._kubectl("get", "pvc", "-o", "json", stdout=subprocess.PIPE)
         pvcs = [x.get("metadata").get("name")
                 for x in json.loads(ret.stdout).get("items")]
 
-        return self.workspace_pvc in pvcs
+        return name in pvcs
 
     def _prepare_workspace(self):
         if not os.path.exists(self.source):
             return
 
-        file = os.path.join(self.resource_base_dir, "prepare", "pod.yaml")
-        click.echo("prepare workspace, copy files")
-        ret = self._kubectl("create", "-f", file, stdout=subprocess.PIPE)
+        pvc = os.path.join(self.resource_base_dir,
+                           "prepare", "pvc-source.yaml")
+        ret = self._kubectl("create", "-f", pvc, stdout=subprocess.PIPE)
+        name = ret.stdout.decode("utf-8").strip().split(" ")[0]
+        name = name.removeprefix('persistentvolumeclaim/')
+        self.workspace_pvc = name
+
+        pod = os.path.join(self.resource_base_dir, "prepare", "pod.yaml")
+        click.echo(f"prepare workspace, copy files, pvc: {self.workspace_pvc}")
+        ret = self._kubectl("create", "-f", "-",
+                            input=self._render(
+                                'prepare/pod.yaml', {'pvc': self.workspace_pvc}),
+                            stdout=subprocess.PIPE)
         name = ret.stdout.decode("utf-8").strip().split(" ")[0]
         name = name.removeprefix('pod/')
         # wait ready
@@ -117,3 +131,7 @@ class Worker:
         if ret.returncode != 0:
             raise Exception(f"kubectl fail {ret.returncode} {ret.stderr}")
         return ret
+
+    def _render(self, tpl, args):
+        t = self.env.get_template(tpl)
+        return t.render(args).encode()

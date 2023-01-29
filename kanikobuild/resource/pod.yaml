@@ -7,36 +7,15 @@ metadata:
     app: kaniko-builder
 spec:
   # https://github.com/GoogleContainerTools/kaniko#caching
-  initContainers:
-    - name: warmer
-      image: gcr.io/kaniko-project/warmer:latest
-      imagePullPolicy: IfNotPresent
-      args:
-        - --registry-mirror=xyh9yo72.mirror.aliyuncs.com
-        - --registry-mirror=mirror.baidubce.com
-        - --registry-mirror=hub-mirror.c.163.com
-        - --registry-mirror=registry-1.docker.io
-        - --cache-dir=/cache
-        - --image=debian:11
-      volumeMounts:
-        - name: kaniko-secret
-          mountPath: /kaniko/.docker
-        - name: workspace
-          mountPath: /workspace
-          subPath: workspace
-        - name: workspace
-          mountPath: /cache
-          subPath: cache
   containers:
     - name: kaniko
       image: gcr.io/kaniko-project/executor:v1.9.1
       imagePullPolicy: IfNotPresent
       args:
         - --use-new-run
-        - --registry-mirror=xyh9yo72.mirror.aliyuncs.com
-        - --registry-mirror=mirror.baidubce.com
-        - --registry-mirror=hub-mirror.c.163.com
-        - --registry-mirror=registry-1.docker.io
+        {% for mirror in mirrors -%}
+        - --registry-mirror={{ mirror }}
+        {% endfor -%}
         - --context={{ context }}
         {% if subpath -%}
         - --context-sub-path={{ subpath }}
@@ -68,10 +47,12 @@ spec:
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
+        {% if pvc -%}
         - name: workspace
           mountPath: /workspace
           subPath: workspace
-        - name: workspace
+        {% endif -%}
+        - name: cache
           mountPath: /cache
           subPath: cache
       resources:
@@ -79,7 +60,7 @@ spec:
           cpu: 8000m
           memory: 8Gi
         requests:
-          cpu: 100m
+          cpu: 2000m
           memory: 200Mi
   volumes:
     - name: kaniko-secret
@@ -88,8 +69,13 @@ spec:
         items:
           - key: .dockerconfigjson
             path: config.json
+    {% if pvc -%}
     - name: workspace
       persistentVolumeClaim:
-        claimName: image-build-pvc
+        claimName: "{{ pvc }}"
+    {% endif -%}
+    - name: cache
+      persistentVolumeClaim:
+        claimName: kaniko-builder-cache
 
   restartPolicy: Never
