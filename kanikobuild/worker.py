@@ -53,7 +53,7 @@ class Worker:
 
         try:
             self._kubectl("wait", "--for=condition=Ready",
-                          "--timeout=120s", name)
+                          "--timeout=300s", name)
             click.echo("run build job following log")
             self._kubectl("logs", "--follow", name)
         except KeyboardInterrupt:
@@ -113,7 +113,8 @@ class Worker:
         name = ret.stdout.decode("utf-8").strip().split(" ")[0]
         name = name.removeprefix('pod/')
         # wait ready
-        self._kubectl("wait", "--for=condition=Ready", f"pod/{name}")
+        self._kubectl("wait", "--for=condition=Ready",
+                      "--timeout=300s", f"pod/{name}")
 
         # copy file
         self._kubectl("exec", name, "--", "rm", "-rvf", "/workspace/source")
