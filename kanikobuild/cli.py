@@ -47,6 +47,7 @@ def build(**kwargs):
 
 @cli.command()
 @click.option("-n", "--namespace", default="default", help="namespace")
+@click.option("--all", is_flag=True, help="delete all build resource include pvc/pv (for cache)")
 def cleanup(**kwargs):
     """cleanup"""
     worker = Worker(**kwargs)

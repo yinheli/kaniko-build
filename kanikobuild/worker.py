@@ -25,6 +25,7 @@ class Worker:
         self.source_base_dir = os.path.basename(self.source)
         self.mirrors = kwargs.get("mirror", ["registry-1.docker.io"])
         self.insecurePull = kwargs.get("insecure_pull", False)
+        self.all = kwargs.get("all", False)
 
         self.env = Environment(loader=FileSystemLoader(
             searchpath=self.resource_base_dir))
@@ -75,6 +76,9 @@ class Worker:
     def cleanup(self):
         self._kubectl("delete", "pod,pvc", "-l", "app=kaniko-builder",
                       "--grace-period=1", "--wait=true", "--ignore-not-found")
+        if self.all:
+            self._kubectl("delete", "pvc", "kaniko-builder-cache",
+                          "--grace-period=1", "--wait=true", "--ignore-not-found")
 
     def prepare(self):
         if not self.source and not self.destination:
