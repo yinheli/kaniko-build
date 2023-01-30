@@ -23,6 +23,7 @@ class Worker:
         self.buildarg = kwargs.get("buildarg", "")
         self.source_base_dir = os.path.basename(self.source)
         self.mirrors = kwargs.get("mirror", ["registry-1.docker.io"])
+        self.insecurePull = kwargs.get("insecure_pull", False)
 
         self.env = Environment(loader=FileSystemLoader(
             searchpath=self.resource_base_dir))
@@ -35,6 +36,7 @@ class Worker:
 
         args = {
             'mirrors': self.mirrors,
+            "insecurePull": self.insecurePull,
             'context': context,
             'git': self.git,
             'subpath': self.subpath,
@@ -43,6 +45,8 @@ class Worker:
             'destination': self.destination,
             'pvc': self.workspace_pvc,
         }
+
+        print(self._render('pod.yaml', args).decode("utf-8"))
 
         click.echo("create build job")
         ret = self._kubectl("create", "-f", "-",

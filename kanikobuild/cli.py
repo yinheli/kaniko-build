@@ -33,6 +33,7 @@ default_mirrors = [
 @click.option("--subpath", default="", help="Dockerfile path")
 @click.option("--dockerfile", default="Dockerfile")
 @click.option("-m", "--mirror", default=default_mirrors, multiple=True, help=f"registry mirror, support mutiple, default: {', '.join(default_mirrors)}")
+@click.option("--insecure-pull", is_flag=True, help="set this flag if you want to pull images from a plain HTTP registry")
 def build(**kwargs):
     """
     build image
