@@ -20,6 +20,7 @@ class Worker:
         self.subpath = kwargs.get("subpath", "/")
         self.dockerfile = kwargs.get("dockerfile", "Dockerfile")
         self.destination = kwargs.get("destination", "")
+        self.insecure = kwargs.get("insecure", False)
         self.buildarg = kwargs.get("buildarg", "")
         self.source_base_dir = os.path.basename(self.source)
         self.mirrors = kwargs.get("mirror", ["registry-1.docker.io"])
@@ -43,10 +44,11 @@ class Worker:
             'dockerfile': self.dockerfile,
             'buildarg': self.buildarg,
             'destination': self.destination,
+            'insecure': self.insecure,
             'pvc': self.workspace_pvc,
         }
 
-        print(self._render('pod.yaml', args).decode("utf-8"))
+        # print(self._render('pod.yaml', args).decode("utf-8"))
 
         click.echo("create build job")
         ret = self._kubectl("create", "-f", "-",

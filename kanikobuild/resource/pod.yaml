@@ -12,26 +12,26 @@ spec:
       image: gcr.io/kaniko-project/executor:v1.9.1
       imagePullPolicy: IfNotPresent
       args:
-        - --use-new-run
-        {% for mirror in mirrors -%}
+        {%- for mirror in mirrors %}
         - --registry-mirror={{ mirror }}
-        {% endfor -%}
-        {% if insecurePull -%}
+        {%- endfor %}
+        {%- if insecurePull %}
         - --insecure-pull
-        {% endif -%}
+        {%- endif %}
         - --context={{ context }}
-        {% if subpath -%}
+        {%- if subpath %}
         - --context-sub-path={{ subpath }}
-        {% endif -%}
-        {% if dockerfile -%}
+        {%- endif %}
+        {%- if dockerfile %}
         - --dockerfile={{ dockerfile }}
-        {% endif -%}
-        {% if buildarg -%}
+        {%- endif %}
+        {%- if buildarg %}
         - --build-arg={{ buildarg }}
-        {% endif -%}
-        {% if git -%}
+        {%- endif %}
+        {%- if git %}
         - --git={{ git }}
-        {% endif -%}
+        {%- endif %}
+        - --use-new-run
         - --cache=true
         - --cache-dir=/cache
         - --cache-run-layers
@@ -40,6 +40,11 @@ spec:
         - --single-snapshot
         - --snapshot-mode=redo
         - --skip-tls-verify-pull
+        {%- if insecure %}
+        - --insecure
+        {%- endif %}
+        - --destination={{ destination }}
+
         # - --label
         # - |
         #   org.opencontainers.image.authors=me@yinheli.com
@@ -47,15 +52,14 @@ spec:
         #   org.opencontainers.image.description=xxx
         # - --destination=registry.default.svc:5000/app:v0.1.0
         # - --insecure
-        - --destination={{ destination }}
       volumeMounts:
         - name: kaniko-secret
           mountPath: /kaniko/.docker
-        {% if pvc -%}
+        {%- if pvc %}
         - name: workspace
           mountPath: /workspace
           subPath: workspace
-        {% endif -%}
+        {%- endif %}
         - name: cache
           mountPath: /cache
           subPath: cache
@@ -73,11 +77,11 @@ spec:
         items:
           - key: .dockerconfigjson
             path: config.json
-    {% if pvc -%}
+    {%- if pvc %}
     - name: workspace
       persistentVolumeClaim:
         claimName: "{{ pvc }}"
-    {% endif -%}
+    {%- endif %}
     - name: cache
       persistentVolumeClaim:
         claimName: kaniko-builder-cache
