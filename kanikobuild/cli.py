@@ -18,6 +18,7 @@ def cli():
 
 
 default_mirrors = [
+    "docker.mirrors.sjtug.sjtu.edu.cn",
     "mirror.baidubce.com",
     "hub-mirror.c.163.com",
     "registry-1.docker.io",
