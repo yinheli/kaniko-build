@@ -35,7 +35,9 @@ spec:
         - --cache=true
         - --cache-dir=/cache
         - --cache-run-layers
-        - --cache-copy-layers
+        # https://github.com/GoogleContainerTools/kaniko/issues/2065
+        # https://github.com/GoogleContainerTools/kaniko/issues/1244
+        - --cache-copy-layers=false
         - --skip-unused-stages
         - --single-snapshot
         - --snapshot-mode=redo
