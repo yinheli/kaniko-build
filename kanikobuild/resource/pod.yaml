@@ -45,7 +45,9 @@ spec:
         {%- if insecure %}
         - --insecure
         {%- endif %}
-        - --destination={{ destination }}
+        {%- for dest in destination %}
+        - --destination={{ dest }}
+        {%- endfor %}
 
         # - --label
         # - |

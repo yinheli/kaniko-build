@@ -28,7 +28,7 @@ default_mirrors = [
 @cli.command(no_args_is_help=True)
 @click.option("-n", "--namespace", default="default", help="namespace")
 @click.option("-s", "--source", default="", help="source dir or git repo url")
-@click.option("-d", "--destination", help="image destination")
+@click.option("-d", "--destination", multiple=True, help="image destination")
 @click.option("--buildarg", default="", help="build-args")
 @click.option("--git", default="", help="git branch")
 @click.option("--subpath", default="", help="Dockerfile path")

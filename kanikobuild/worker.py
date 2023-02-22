@@ -19,7 +19,7 @@ class Worker:
         self.git = kwargs.get("git", "master")
         self.subpath = kwargs.get("subpath", "/")
         self.dockerfile = kwargs.get("dockerfile", "Dockerfile")
-        self.destination = kwargs.get("destination", "")
+        self.destination = kwargs.get("destination", [])
         self.insecure = kwargs.get("insecure", False)
         self.buildarg = kwargs.get("buildarg", "")
         self.source_base_dir = os.path.basename(self.source)
