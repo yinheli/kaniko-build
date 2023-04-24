@@ -25,6 +25,7 @@ class Worker:
         self.source_base_dir = os.path.basename(self.source)
         self.mirrors = kwargs.get("mirror", ["registry-1.docker.io"])
         self.insecurePull = kwargs.get("insecure_pull", False)
+        self.arg_cleanup = kwargs.get("cleanup", False)
         self.all = kwargs.get("all", False)
 
         self.env = Environment(loader=FileSystemLoader(
@@ -47,6 +48,7 @@ class Worker:
             'destination': self.destination,
             'insecure': self.insecure,
             'pvc': self.workspace_pvc,
+            'arg_cleanup': self.arg_cleanup,
         }
 
         # print(self._render('pod.yaml', args).decode("utf-8"))

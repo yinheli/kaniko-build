@@ -48,7 +48,9 @@ spec:
         {%- for dest in destination %}
         - --destination={{ dest }}
         {%- endfor %}
-
+        {%- if arg_cleanup %}
+        - --cleanup
+        {%- endif %}
         # - --label
         # - |
         #   org.opencontainers.image.authors=me@yinheli.com
