@@ -9,7 +9,7 @@ spec:
   # https://github.com/GoogleContainerTools/kaniko#caching
   containers:
     - name: kaniko
-      image: gcr.io/kaniko-project/executor:v1.9.1
+      image: gcr.io/kaniko-project/executor:v1.9.2
       imagePullPolicy: IfNotPresent
       args:
         {%- for mirror in mirrors %}
@@ -42,6 +42,9 @@ spec:
         - --single-snapshot
         - --snapshot-mode=redo
         - --skip-tls-verify-pull
+        {%- if cacherepo %}
+        - --cache-repo={{ cacherepo }}
+        {%- endif %}
         {%- if insecure %}
         - --insecure
         {%- endif %}

@@ -35,6 +35,7 @@ default_mirrors = [
 @click.option("--dockerfile", default="Dockerfile")
 @click.option("-m", "--mirror", default=default_mirrors, multiple=True, help=f"registry mirror, support mutiple, default: {', '.join(default_mirrors)}")
 @click.option("--insecure-pull", is_flag=True, help="set this flag if you want to pull images from a plain HTTP registry")
+@click.option("--cache-repo", default="", help="set this flag to specify a remote repository that will be used to store cached layers")
 @click.option("--insecure", is_flag=True, help="set this flag if you want to push images to a plain HTTP registry")
 @click.option("--cleanup", is_flag=True, help="set this flag to clean the filesystem at the end of the build")
 def build(**kwargs):

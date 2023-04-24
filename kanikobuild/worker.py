@@ -25,6 +25,7 @@ class Worker:
         self.source_base_dir = os.path.basename(self.source)
         self.mirrors = kwargs.get("mirror", ["registry-1.docker.io"])
         self.insecurePull = kwargs.get("insecure_pull", False)
+        self.cacherepo = kwargs.get("cache_repo", False)
         self.arg_cleanup = kwargs.get("cleanup", False)
         self.all = kwargs.get("all", False)
 
@@ -39,7 +40,6 @@ class Worker:
 
         args = {
             'mirrors': self.mirrors,
-            "insecurePull": self.insecurePull,
             'context': context,
             'git': self.git,
             'subpath': self.subpath,
@@ -47,6 +47,8 @@ class Worker:
             'buildarg': self.buildarg,
             'destination': self.destination,
             'insecure': self.insecure,
+            "insecurePull": self.insecurePull,
+            'cacherepo': self.cacherepo,
             'pvc': self.workspace_pvc,
             'arg_cleanup': self.arg_cleanup,
         }
