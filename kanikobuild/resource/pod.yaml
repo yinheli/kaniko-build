@@ -73,11 +73,8 @@ spec:
           mountPath: /cache
           subPath: cache
       resources:
-        limits:
-          cpu: 8000m
-          memory: 8Gi
         requests:
-          cpu: 2000m
+          cpu: 100m
           memory: 200Mi
   volumes:
     - name: kaniko-secret
